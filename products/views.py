@@ -1,3 +1,4 @@
+# pylint: disable=missing-module-docstring
 from django.shortcuts import render, redirect, reverse, get_object_or_404  # noqa: E501
 from django.contrib import messages
 from django.db.models import Q
@@ -6,14 +7,31 @@ from .models import Product, Category
 # Create your views here.
 
 
+# pylint: disable=line-too-long
 def all_products(request):
     """A view to (a kill) show all products in cluding sorting and search queiries """    # noqa: E501
 
     products = Product.objects.all()  # pylint: disable=maybe-no-member
     query = None  # ensure no error occurs when loading products page without a search term.  # noqa: E501
     categories = None
+    sort = None  # pylint: disable=unused-variable
+    direction = None
 
     if request.GET:
+        if 'sort' in request.GET:
+            sortkey = request.GET['sort']
+            sort = sortkey  # noqa: F841
+            if sortkey == 'name':
+                sortkey = 'lower_name'
+                products = products.annotate(lower_name=Lower('name'))  # noqa: F821 E501  # pylint: disable=undefined-variable
+
+            if 'direction' in request.GET:
+                direction = request.GET['direction']
+                if direction == 'desc':
+                    sortkey = f'-{sortkey}'
+
+            products = products.order_by(sortkey)
+
         if 'category' in request.GET:
             # categories in html page are split by commas to facilitate this
             categories = request.GET['category'].split(',')
@@ -31,10 +49,13 @@ def all_products(request):
             queries = Q(name__icontains=query) | Q(description__icontains=query)  # noqa: E501
             products = products.filter(queries)
 
+    current_sorting = f'{sort}_{direction}'
+
     context = {
         'products': products,
         'search_term': query,
         'current_categories': categories,
+        'current_sorting': current_sorting,
     }
 
     return render(request, 'products/products.html', context)
