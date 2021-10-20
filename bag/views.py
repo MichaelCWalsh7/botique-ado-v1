@@ -1,5 +1,7 @@
 # pylint: disable=missing-module-docstring
 from django.shortcuts import render, redirect, reverse, HttpResponse  # noqa: F401,E501
+from django.contrib import messages
+from products.models import Product
 
 # Create your views here.
 
@@ -13,6 +15,7 @@ def view_bag(request):
 def add_to_bag(request, item_id):
     """Add a quantity of the specified product to the shopping bag"""
 
+    product = Product.objects.get(pk=item_id)  # pylint: disable=no-member
     quantity = int(request.POST.get('quantity'))
     redirect_url = request.POST.get('redirect_url')
     size = None
@@ -36,12 +39,14 @@ def add_to_bag(request, item_id):
             # per item, but still track different sizes. Clever.
             bag[item_id] = {'items_by_size': {size: quantity}}
     else:
-        if item_id in bag in list(bag.keys()):
+        if item_id in list(bag.keys()):
             # increments quantity if item is already in bag
             bag[item_id] += quantity
         else:
             # adds item to bag
             bag[item_id] = quantity
+            messages.success(request, f'Added {product.name} to your bag')
+            print(messages)
 
     # overwrites session variable with updated version
     request.session['bag'] = bag
