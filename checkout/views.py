@@ -1,22 +1,42 @@
-# pylint: disable=missing-module-docstring,missing-function-docstring,line-too-long  # noqa: E501
+# pylint: disable=missing-module-docstring,missing-function-docstring,line-too-long,unused-variable,unused-import  # noqa: E501
 from django.shortcuts import render, redirect, reverse
 from django.contrib import messages
+from django.conf import settings  # noqa: F401
 
+import stripe  # noqa: F401
+
+from bag.contexts import bag_contents
 from .forms import OrderForm
 
 
 def checkout(request):
+    stripe_public_key = settings.STRIPE_PUBLIC_KEY  # noqa: F841
+    stripe_secret_key = settings.STRIPE_SECRET_KEY
+
     bag = request.session.get('bag', {})
     if not bag:
         messages.error(request, "There's nothing in your bag at the moment.")
         return redirect(reverse('products'))
 
+    current_bag = bag_contents(request)
+    total = current_bag['grand_total']
+    stripe_total = round(total * 100)  # noqa: F841
+    stripe.api_key = stripe_secret_key
+    intent = stripe.PaymentIntent.create(
+        amount=stripe_total,
+        currency=settings.STRIPE_CURRENCY,
+    )  # noqa: F841
+
     order_form = OrderForm()
+
+    if not stripe_public_key:
+        messages.warning(request, 'Stripe public key is missing. \
+            Did you forget to set it in your environment?')
     template = 'checkout/checkout.html'
     context = {
         'order_form': order_form,
-        'stripe_public_key': 'pk_test_51Jo841KhzigfW6e3RYsQhgqugeGxqruSFcU4hxDCkMhpWM4F5tNNOu7P0EcNIQitRXp0jfqKe106LFMK6KI63IEL00tNyAzgK6',  # noqa: E501
-        'client_secret': 'test client secret',
+        'stripe_public_key': stripe_public_key,
+        'client_secret': intent.client_secret,
     }
 
     return render(request, template, context)
