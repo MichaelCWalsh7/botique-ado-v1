@@ -43,7 +43,7 @@ class Order(models.Model):  # noqa: DJ08
         self.order_total = self.lineitems.aggregate(Sum('lineitem_total'))['lineitem_total__sum'] or 0  # noqa: E501
         # Then, if the total is less than the delivery threshold, we multiply
         # it the percentage (in this case 10) to get the delivery charge.
-        if self.order_total > settings.FREE_DELIVERY_THRESHOLD:
+        if self.order_total < settings.FREE_DELIVERY_THRESHOLD:
             self.delivery_cost = self.order_total * settings.STANDARD_DELIVERY_PERCENTAGE / 100  # noqa: E501
         else:
             # Otherwise it's 0
