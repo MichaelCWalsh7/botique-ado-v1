@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring,missing-function-docstring,line-too-long,unused-variable,unused-import  # noqa: E501
+# pylint: disable=missing-module-docstring,missing-function-docstring,line-too-long  # noqa: E501
 # pylint: disable=no-member,undefined-variable,broad-except,invalid-name
 import json
 from django.shortcuts import render, redirect, reverse, get_object_or_404, HttpResponse  # noqa: E501
@@ -15,10 +15,10 @@ from .models import Order, OrderLineItem
 
 
 @require_POST
-def chache_checkout_date(request):
+def cache_checkout_data(request):
     try:
         # stores payment intent id
-        pid = request.POST.get('client_secret').split('_ secret')[0]
+        pid = request.POST.get('client_secret').split('_secret')[0]
         # initializes stripe with secret key so we can modify payment intent
         stripe.api_key = settings.STRIPE_SECRET_KEY
         # call method with pid to modify the payment intent metadata
@@ -119,6 +119,7 @@ def checkout(request):
 
 
 def checkout_success(request, order_number):
+    # pylint: disable=unused-variable
     """
     Handle successful checkouts
     """
