@@ -8,11 +8,14 @@ from django.conf import settings  # noqa: F401
 from django_countries.fields import CountryField
 
 from products.models import Product
+from profiles.models import UserProfile
 
 
 class Order(models.Model):  # noqa: DJ08
 
     order_number = models.CharField(max_length=32, null=False, editable=False)
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.SET_NULL,
+                                     null=True, blank=True, related_name='orders')  # noqa: E501
     full_name = models.CharField(max_length=50, null=False, blank=False)
     email = models.EmailField(max_length=254, null=False, blank=False)
     phone_number = models.CharField(max_length=20, null=False, blank=False)
