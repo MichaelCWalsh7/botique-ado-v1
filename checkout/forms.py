@@ -24,26 +24,26 @@ class OrderForm(forms.ModelForm):
             'full_name': 'Full Name',
             'email': 'Email Address',
             'phone_number': 'Phone Number',
-            'country': 'Country',
             'postcode': 'Postal Code',
             'town_or_city': 'Town or City',
             'street_address1': 'Street Address 1',
             'street_address2': 'Street Address 2',
-            'county': 'County',
+            'county': 'County, State, Locality',
         }
 
         # Sets autofocus to full name field (the first one) ensuring the
         # cursor always starts here
-        self.fields['full_name'].widget.attrs['autofocus'] = True  # noqa: F821
+        self.fields['full_name'].widget.attrs['autofocus'] = True  # noqa: F821,E501
         for field in self.fields:  # noqa: F821
-            # Sets placeholder text with an asterisk if it is a required
-            # field or without one if not
-            if self.fields[field].required:  # noqa: F821
-                placeholder = f'{placeholders[field]} *'
-            else:
-                placeholder = placeholders[field]
-            # Then sets the field to display placeholder from above dictionary
-            self.fields[field].widget.attrs['placeholder'] = placeholder  # noqa: F821,E501
+            if field != 'country':
+                # Sets placeholder text with an asterisk if it is a required
+                # field or without one if not
+                if self.fields[field].required:  # noqa: F821
+                    placeholder = f'{placeholders[field]} *'
+                else:
+                    placeholder = placeholders[field]
+                # Then sets the field to display placeholder from above dictionary  # noqa: E501
+                self.fields[field].widget.attrs['placeholder'] = placeholder  # noqa: F821,E501
             # Sets up a class we'll use with css later
             self.fields[field].widget.attrs['class'] = 'stripe style-input'  # noqa: F821,E501
             # Removes labels as placeholders have already been set
