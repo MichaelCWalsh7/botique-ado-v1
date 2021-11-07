@@ -4,6 +4,7 @@ import time
 from django.http import HttpResponse
 
 from products.models import Product
+from profiles.models import UserProfile
 from .models import Order, OrderLineItem
 
 
@@ -46,7 +47,26 @@ class StripeWH_Handler:
             if value == "":
                 shipping_details.address[field] = None
 
-        # First, we chekc to see if the form data is already in our database
+        # Update profile information if save_info was checked
+        profile = None
+        # Grab username from metadata we added to stripe pid in checkouts view
+        # cache_checkout_data function
+        username = intent.metadata.username
+        # If user is autheneticated, and save_info was checked, we retrieve
+        # their profile and update the defaults
+        if username != 'AnonymousUser':
+            profile = UserProfile.objects.get(user__username=username)
+            if save_info:
+                profile.default_phone_number = shipping_details.phone
+                profile.default_country = shipping_details.address.country
+                profile.default_postcode = shipping_details.address.postal_code  # noqa: E501
+                profile.default_town_or_city = shipping_details.address.city
+                profile.default_street_address1 = shipping_details.address.line1  # noqa: E501
+                profile.default_street_address2 = shipping_details.address.line2  # noqa: E501
+                profile.default_county = shipping_details.address.state
+                profile.save()
+
+        # First, we check to see if the form data is already in our database
         # In this case there's no extra action necessary and so we return a
         # and continue as normal. If it doens't exist we create it here in
         # the webhook.
@@ -87,6 +107,7 @@ class StripeWH_Handler:
             try:
                 order = Order.objects.create(
                     full_name=shipping_details.name,
+                    user_profile=profile,
                     email=billing_details.email,
                     phone_number=shipping_details.phone,
                     country=shipping_details.address.country,
