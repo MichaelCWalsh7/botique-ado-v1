@@ -20,8 +20,12 @@ def profile(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Profile updated successfully!')
+        else:
+            messages.error(request, 'Update failed. Please ensure \
+                the form is valid.')
+    else:
+        form = UserProfileForm(instance=profile)
 
-    form = UserProfileForm(instance=profile)
     # The below "orders" comes from a Foreign Key in the checkouts model
     orders = profile.orders.all()
 
