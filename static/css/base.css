@@ -245,7 +245,7 @@ input[name='q']::placeholder {
 }
 
 .custom-checkbox .custom-control-label::before {
-    border: 0;
+    border-radius: 0;
     border-color: #dc3545;
 }
 
