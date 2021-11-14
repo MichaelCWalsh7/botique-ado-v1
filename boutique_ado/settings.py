@@ -188,6 +188,13 @@ STANDARD_DELIVERY_PERCENTAGE = 10
 
 
 if 'USE_AWS' in os.environ:
+    # Tells browser to chachce static files for a long time as they don't
+    # change often
+    AWS_S3_OBJECT_PARAMETERS = {
+        'Expires': 'Thu, 31 Dec 2099 20:00:00 GMT',
+        'CacheControl': 'max-age=94608000',
+    }
+    
     # Bucket config
     AWS_STORAGE_BUCKET_NAME = 'mcw-792-boutique-ado'
     AWS_S3_REGION_NAME = 'eu-west-3'
